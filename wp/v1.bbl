@@ -1,0 +1,380 @@
+% $ biblatex auxiliary file $
+% $ biblatex version 2.5 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\entry{abadie2006large}{article}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Abadie}{A.}%
+     {Alberto}{A.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Imbens}{I.}%
+     {Guido~W}{G.~W.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {Wiley Online Library}%
+  }
+  \strng{namehash}{AAIGW1}
+  \strng{fullhash}{AAIGW1}
+  \field{labelyear}{2006}
+  \field{sortinit}{A}
+  \field{number}{1}
+  \field{pages}{235\bibrangedash 267}
+  \field{title}{Large sample properties of matching estimators for average
+  treatment effects}
+  \field{volume}{74}
+  \field{journaltitle}{Econometrica}
+  \field{year}{2006}
+\endentry
+
+\entry{anatolyev2011methods}{book}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Anatolyev}{A.}%
+     {Stanislav}{S.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Gospodinov}{G.}%
+     {Nikolay}{N.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {CRC Press}%
+  }
+  \strng{namehash}{ASGN1}
+  \strng{fullhash}{ASGN1}
+  \field{labelyear}{2011}
+  \field{sortinit}{A}
+  \field{title}{Methods for estimation and inference in modern econometrics}
+  \field{year}{2011}
+\endentry
+
+\entry{athey2015measure}{article}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Athey}{A.}%
+     {Susan}{S.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Imbens}{I.}%
+     {Guido}{G.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {American Economic Association}%
+  }
+  \strng{namehash}{ASIG1}
+  \strng{fullhash}{ASIG1}
+  \field{labelyear}{2015}
+  \field{sortinit}{A}
+  \field{number}{5}
+  \field{pages}{476\bibrangedash 80}
+  \field{title}{A Measure of Robustness to Misspecification}
+  \field{volume}{105}
+  \field{journaltitle}{American Economic Review}
+  \field{year}{2015}
+\endentry
+
+\entry{bickel1993efficient}{book}{}
+  \name{author}{7}{}{%
+    {{}%
+     {Bickel}{B.}%
+     {Peter~J}{P.~J.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Klaassen}{K.}%
+     {Chris~AJ}{C.~A.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Bickel}{B.}%
+     {Peter~J}{P.~J.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Ritov}{R.}%
+     {Y}{Y}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Klaassen}{K.}%
+     {J}{J}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Wellner}{W.}%
+     {Jon~A}{J.~A.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Ritov}{R.}%
+     {YA'Acov}{Y.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {Johns Hopkins University Press Baltimore}%
+  }
+  \strng{namehash}{BPJ+1}
+  \strng{fullhash}{BPJKCABPJRYKJWJARY1}
+  \field{labelyear}{1993}
+  \field{sortinit}{B}
+  \field{title}{Efficient and adaptive estimation for semiparametric models}
+  \field{year}{1993}
+\endentry
+
+\entry{boucheron2013concentration}{book}{}
+  \name{author}{3}{}{%
+    {{}%
+     {Boucheron}{B.}%
+     {St{\'e}phane}{S.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Lugosi}{L.}%
+     {G{\'a}bor}{G.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Massart}{M.}%
+     {Pascal}{P.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {OUP Oxford}%
+  }
+  \strng{namehash}{BSLGMP1}
+  \strng{fullhash}{BSLGMP1}
+  \field{labelyear}{2013}
+  \field{sortinit}{B}
+  \field{title}{Concentration inequalities: A nonasymptotic theory of
+  independence}
+  \field{year}{2013}
+\endentry
+
+\entry{dehejia1999causal}{article}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Dehejia}{D.}%
+     {Rajeev~H}{R.~H.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Wahba}{W.}%
+     {Sadek}{S.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {Taylor \& Francis Group}%
+  }
+  \strng{namehash}{DRHWS1}
+  \strng{fullhash}{DRHWS1}
+  \field{labelyear}{1999}
+  \field{sortinit}{D}
+  \field{number}{448}
+  \field{pages}{1053\bibrangedash 1062}
+  \field{title}{Causal effects in nonexperimental studies: Reevaluating the
+  evaluation of training programs}
+  \field{volume}{94}
+  \field{journaltitle}{Journal of the American statistical Association}
+  \field{year}{1999}
+\endentry
+
+\entry{fernholz2012mises}{book}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Fernholz}{F.}%
+     {Luisa~Turrin}{L.~T.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {Springer Science \& Business Media}%
+  }
+  \strng{namehash}{FLT1}
+  \strng{fullhash}{FLT1}
+  \field{labelyear}{2012}
+  \field{sortinit}{F}
+  \field{title}{Von Mises calculus for statistical functionals}
+  \field{volume}{19}
+  \field{year}{2012}
+\endentry
+
+\entry{gentzkow2014measuring}{report}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Gentzkow}{G.}%
+     {Matthew}{M.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Shapiro}{S.}%
+     {Jesse~M}{J.~M.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{GMSJM1}
+  \strng{fullhash}{GMSJM1}
+  \field{labelyear}{2015}
+  \field{sortinit}{G}
+  \field{title}{Measuring the sensitivity of parameter estimates to sample
+  statistics}
+  \list{institution}{1}{%
+    {National Bureau of Economic Research}%
+  }
+  \field{type}{techreport}
+  \field{year}{2015}
+\endentry
+
+\entry{hansen1982large}{article}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Hansen}{H.}%
+     {Lars~Peter}{L.~P.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {JSTOR}%
+  }
+  \strng{namehash}{HLP1}
+  \strng{fullhash}{HLP1}
+  \field{labelyear}{1982}
+  \field{sortinit}{H}
+  \field{pages}{1029\bibrangedash 1054}
+  \field{title}{Large sample properties of generalized method of moments
+  estimators}
+  \field{journaltitle}{Econometrica: Journal of the Econometric Society}
+  \field{year}{1982}
+\endentry
+
+\entry{imbens2015causal}{book}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Imbens}{I.}%
+     {Guido~W}{G.~W.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Rubin}{R.}%
+     {Donald~B}{D.~B.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {Cambridge University Press}%
+  }
+  \strng{namehash}{IGWRDB1}
+  \strng{fullhash}{IGWRDB1}
+  \field{labelyear}{2015}
+  \field{sortinit}{I}
+  \field{title}{Causal Inference in Statistics, Social, and Biomedical
+  Sciences}
+  \field{year}{2015}
+\endentry
+
+\entry{lalonde1986evaluating}{article}{}
+  \name{author}{1}{}{%
+    {{}%
+     {LaLonde}{L.}%
+     {Robert~J}{R.~J.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {JSTOR}%
+  }
+  \strng{namehash}{LRJ1}
+  \strng{fullhash}{LRJ1}
+  \field{labelyear}{1986}
+  \field{sortinit}{L}
+  \field{pages}{604\bibrangedash 620}
+  \field{title}{Evaluating the econometric evaluations of training programs
+  with experimental data}
+  \field{journaltitle}{The American economic review}
+  \field{year}{1986}
+\endentry
+
+\entry{leamer1983let}{article}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Leamer}{L.}%
+     {Edward~E}{E.~E.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {JSTOR}%
+  }
+  \strng{namehash}{LEE1}
+  \strng{fullhash}{LEE1}
+  \field{labelyear}{1983}
+  \field{sortinit}{L}
+  \field{pages}{31\bibrangedash 43}
+  \field{title}{Let's take the con out of econometrics}
+  \field{journaltitle}{The American Economic Review}
+  \field{year}{1983}
+\endentry
+
+\entry{liitiainen2008nonparametric}{article}{}
+  \name{author}{3}{}{%
+    {{}%
+     {Liiti{\"a}inen}{L.}%
+     {Elia}{E.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Corona}{C.}%
+     {Francesco}{F.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Lendasse}{L.}%
+     {Amaury}{A.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {Springer}%
+  }
+  \strng{namehash}{LECFLA1}
+  \strng{fullhash}{LECFLA1}
+  \field{labelyear}{2008}
+  \field{sortinit}{L}
+  \field{number}{3}
+  \field{pages}{155\bibrangedash 167}
+  \field{title}{On nonparametric residual variance estimation}
+  \field{volume}{28}
+  \field{journaltitle}{Neural Processing Letters}
+  \field{year}{2008}
+\endentry
+
+\lossort
+\endlossort
+
+\endinput

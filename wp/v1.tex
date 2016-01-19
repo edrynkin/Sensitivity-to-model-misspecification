@@ -1,0 +1,911 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath,amssymb,amssymb,amsthm,geometry,pdfpages}
+\usepackage[linesnumbered,lined,boxed,commentsnumbered]{algorithm2e}
+\usepackage[pdftex,colorlinks=true,unicode,bookmarksnumbered=true, hyperfootnotes=true]{hyperref}
+
+
+
+
+\geometry{top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm}
+\usepackage{fancyhdr}
+\usepackage[
+backend=bibtex,
+citestyle=authoryear,
+bibstyle=numeric
+]{biblatex}
+\addbibresource{v1.bib}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+
+\title{Sensitivity to Model Misspecification}
+\date{\today}
+\author{Dmitry Arkhangelskiy \\ Stanford GSB  \and  Evgeni Drynkin \\ Stanford GSB}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+In this paper we construct a measure that captures sensitivity of estimates to model misspecification in a particular GMM-like framework. This framework includes estimation of treatment effect under unconfoundedness, instrumental variables, demand estimation and general semiparametric models. Our sensitivity measure can be easily computed even for large datasets and complex models. It captures the worst case scenario and can be used to construct worst case bounds for the parameter of interest. Somewhat surprisingly the worst case scenario is connected with a norm of an observable function. We demonstrate its performance using familiar \parencite{lalonde1986evaluating} dataset. 
+\end{abstract}
+
+
+\section{Introduction}
+
+In this paper we construct a measure of sensitivity of key parameters of an econometric model to misspecification. Our measure quantifies the worst case sensitivity and thus can be used to construct conservative bounds on parameter value. 
+
+Our theoretical model is a particular instance of GMM framework \parencite[see][]{hansen1982large}. It includes as a special case treatment effect models both with instruments and under unconfoundedness, random coefficient demand models, and some general semiparametric models. One common factor that unites all these models is that there is an unknown nuisance function which is important for estimation of the main parameter. In case of treatment effects this is a control function that is crucial for estimating the main parameter -- treatment effect. In case of demand models this is unknown function of attributes that is essential for estimating price elasticity. 
+
+It is clear that all models used by applied economists are misspecified: they don't include all necessary variables. This fact by itself isn't important, because it is a priori not clear that the misspecification is harmful. For example, there is a general understanding that in a well-designed experiment one can estimate treatment effects using misspecified model.
+ 
+Main goal of our paper is to quantify the effect of model misspecification on the key parameters of the model. In order to do this we need to formalize what precisely we mean by misspecification. For this formalization we use a particular GMM-like framework. The main conceptual problem with misspecification is that it is often difficult to disentangle two different effects: change in the model and change in question that researcher is asking. Formally each time we are considering a new model we  are implicitly changing the question that we are trying to answer.  As a result, one can always argue that it's not the model that is misspecified but rather the question is different. 
+
+% reiterate on importance of definition 
+
+This logic is unbreakable and is universally applicable. At the same time, for some applications we can talk about misspecification and keep the main research question essentially constant. This frameworks are characterized by two properties: (i) all model parameters can be divided into key parameters and nuisance parameters; (ii) key parameters can be expressed as a function of nuisance parameters. Then we think that the model is misspecified when nuisance parameters aren't modeled correctly. 
+
+Our focus on misspecification is additionally motivated by the following consideration. When economists report their estimates in empirical papers it is customary to report not just the estimated value but also its standard error. The common ground is that parameters without their standard errors are meaningless. It is clear that standard errors capture only one particular source of uncertainty -- randomness of data. We can model this randomness differently, either as sampling uncertainty or as pure model-based uncertainty in Bayesian  fashion.  At the end of the day all different concepts of standard errors all boil down to conceptually similar objects -- some sort of sensitivity of estimated value to perturbations in data.
+
+There is one problem with this kind of uncertainty: it assumes that we are using the right model. Moreover, purely mathematically this uncertainty decreases as we have more and more data. This is a built-in property of mathematical models that are used to model uncertainty: independent random variables imply  concentration of measure as sample size grows. As a result, with modern-sized datasets we observe economically insignificant standard errors. If we take these errors at face value then we are bound to believe that we essentially know the answer without any uncertainty. 
+
+In practice researchers don't take these errors completely seriously because everybody understands that there is a different and arguably more important source of uncertainty -- the model used might be wrong. In absence of any formal way to quantify this type of uncertainty researchers engage into several ad hoc practices. The most popular one is to report estimates from several models. Typically in published papers these reports show that key estimates don't change from specification to specification. 
+
+There are at least three conceptual problems with this otherwise reasonable practice.  First, specifications are chosen informally and there is no way to tell whether the reported specifications are in fact the most illustrative ones. Second, this whole process is a multiple comparison procedure and thus should be treated as such, which requires additional sophisticated statistical analysis. Finally, in complex models one simply can't computationally afford to report results from different specifications. Beginning from \parencite{leamer1983let} the first two problems received significant attention in the econometric literature. These concerns are somewhat understood on the theoretical level but are for the most part ignored in the empirical literature. 
+
+Our measure solves all these problems: it is formally defined and quantifies the worst case scenario, it can be consistently estimated with reasonable accuracy and even for complex models it takes seconds to compute. Of course, all these nice properties don't come for free. The price that we pay is the following: we use a specific framework, which, being rich enough, of course doesn't include all interesting models; our measure is inherently local and thus quantifies sensitivity to local perturbations; and finally, we measure the worst case sensitivity which can be far from the actual one.
+
+We demonstrate usefulness of our measure using a familiar  \parencite{lalonde1986evaluating} dataset. In his original paper LaLonde poses a very important question: can economists using sophisticated econometric models with observational data replicate the results of experiments? His answer was negative and motivated a long lasting line of research \parencite[see][]{dehejia1999causal}. 
+
+%Cite everybody else about LaLonde
+
+LaLonde's data consists of two parts: experimental dataset and observational dataset that designed to mimic experimental data. We use his dataset for that we a priori know that experiment should be robust to model misspecification, while lots of papers, starting from LaLonde's original one, show that observational dataset is highly sensitive to model considered. As a result we expect our measure to be small in experimental dataset and large in the observational one, which is indeed the case. 
+
+Our empirical example is there to demonstrate that our measure behaves reasonably in a situation in which we already know relative importance of misspecification. We encourage readers to apply our measure to other studies in which we don't a priori know the sensitivity and report their results. 
+
+
+\paragraph{Related literature:} Our paper doesn't readily fit into one particular strand of literature. Many papers discuss model selection and costs of misspecification but most don't propose any measure of sensitivity. 
+
+The closed paper in motivation and approach is \parencite{athey2015measure} in which authors propose a procedure that looks at different splits of sample and reports estimates  of main parameters resulting from such splits. Splits are selected by a decision-tree-like algorithm. Although formally very different this approach is similar in spirit to our measure. One advantage of our measure is that we have a closed-form solution that can be estimated in seconds. Moreover our measure quantifies a well-defined worst-case scenario, while approach of  \parencite{athey2015measure} is somewhat arbitrary. 
+
+Another paper that is motivated by misspecification and also constructs a measure of sensitivity is \parencite{gentzkow2014measuring}. In this paper authors consider dependence of parameter of interest on different moments of data. We think of  our work as complementary to theirs: their focus is mainly on what moments that are used in estimation are most important for the estimates of  key parameters. We essentially answer the orthogonal question: how important are those moments that were not included in estimation procedure. We believe that there might be some deep connections between our approaches but we think that this is a question of a separate paper. 
+
+Two theoretical examples that we consider throughout the text are related to treatment effect literature. Excellent recent source on these models is \parencite{imbens2015causal}. As we show, in the model with unconfoundedness sensitivity can be interpreted as a particular measure of imbalance. It was long recognized in experimental literature that sample balance is crucial for empirical work. Check  \parencite{imbens2015causal} for the discussion of importance of balance. 
+
+From statistical point of view one can see our work as a study of bias. The other side of the story is a study of variance in misspecified models which has a long tradition in statistics and econometrics. For the textbook treatment of inference in misspecified models check \parencite{anatolyev2011methods} which discusses it at length. Variance is an important issue, at the end of the day, we would prefer correct standard errors to incorrect ones, but as sample grows variance goes to zero, while bias might stay large independent of sample size. 
+
+For our estimation procedure we use the nonparametric noise estimator of \parencite{liitiainen2008nonparametric}. This kind of estimators are not very popular among econometricians, despite their simplicity and computational attractiveness. One particular case of use of a similar estimator is presented in \parencite{abadie2006large}.
+
+From mathematical point of view we are using some simple facts from theory of Hilbert spaces. One can use \parencite{bickel1993efficient} and \parencite{fernholz2012mises} for introduction into Hilbert spaces, related infinite-dimensional calculus concepts and their use in statistics. 
+
+\section{Model}
+
+In this section we discuss probabilistic model that we are using throughout the paper. The most important fact about our model is that it allows to talk about misspecification without changing the question that researchers are trying to answer. This is achieved by focusing on a specific form a misspecification -- we assume that nuisance parameters of the probability model can be misspecified while the main parameter always stays the same. We formalize this logic expressing the answer to economic question of interest as a functional of nuisance parameters. Definition of nuisance parameters can change from model to model but the functional stays constant. 
+
+We explain this structure on two simple examples: estimation of treatment effect under unconfoundedness and with instrumental variables. Main mathematical apparatus that we are using is that of Hilbert spaces. Reader can safely think about all considered Hilbert spaces as ordinary finite-dimensional Euclidean spaces.
+
+
+
+\subsection{Notation}
+
+We use capital Latin letters $(Y,X,Z,H,\dots)$ to denote observed random variables. We use small latin letters $(f,g,h,c,\dots)$ to denote real-valued functions of random variables. Perhaps, $f(X)$ would have been a better notation, but we reduce it to $f$ for better readability. We use script letters $(\mathcal{F},\mathcal{S},\mathcal{C},\dots)$ for spaces of real-valued functions and measures. 
+
+We use $\|\cdot \|_{2,\mu}$ to denote an $L^2(\mu)$ norm and sometimes use $\|\cdot\|_2$ when the underlying measure if clear from the discussion. Small greek letters $(\alpha,\beta,\gamma,\dots)$ are used for real-valued fixed parameters. We use a.s. shortcut to describe events that hold almost surely with respect to some underlying measure. We use notation $a:=b$ to state that $a$ is defined as $b$.
+
+\subsection{Technical definitions}
+
+The most important definition here is the definition of two spaces $\mathcal{F}$ and $\mathcal{S}$ which are used extensively throughout the text. These are just two Hilbert spaces of functions. 
+
+Let  $(X,H)$ be a pair of random variables which takes values in $\mathbb{R}^{d_1}\times \mathbb{R}^{d_2}$ and is distributed according to some measure $\mu$. Let $(\mathbb{R}^{d_1}\times \mathbb{R}^{d_2}, \sigma(X,H), \mu)$ be a corresponding probability space, where $\sigma(X, H)$ is a (Borel) $\sigma$-algebra generated by $(X,H)$.
+
+\begin{assumption}\label{abs_cont}
+Measure $\mu$ is absolutely continuous with respect to fixed known $\sigma$-finite measure $\nu$ on $\mathbb{R}^{d_1}\times \mathbb{R}^{d_2}$.
+\end{assumption}
+
+\begin{assumption} 
+Let $K$ be a fixed compact subset of $\mathbb{R}^{d_1}\times \mathbb{R}^{d_2}$. Under $\nu$ random pair $(X,H)\in K$ almost surely.
+\end{assumption}
+
+
+For any $\sigma$-algebra $\mathcal{A}$ let $m\mathcal{A}$ be a set of all real-valued random variables measurable with respect to $\mathcal{A}$. Let $\mathcal{F} = \{f\in m \sigma(X,H):\int f^2d\nu <\infty\}$ and let $\mathcal{S} = \{f\in m \sigma(X): \int f^2d\nu <\infty\}$. That is $\mathcal{F}$ is a set of square-integrable functions of $(X,H)$ and $\mathcal{S}$ is a set of square-integrable functions of $X$ only. Let $\| f\|_{2,\nu}$ be an $L^2(\nu)$ norm of $f$, that is $\|f\|_{2,\nu} = \left( \int f^2d\nu\right)^{\frac12}$. By construction both $\mathcal{F}$ and $\mathcal{S}$ are separable Hilbert spaces (under $\|\cdot\|_{2,\nu}$) and $\mathcal{S}$ is a closed linear subspace of $\mathcal{F}$.
+
+Let $C>0$ be some fixed constant and define the following set of measures: $\mathcal{M} = \{\mu: \mu\ge 0,\, \nu(\mu) = 1,\mu\ll \nu \text{ and $\frac{d\mu}{d\nu}<C$}\}$. That is $\mathcal{M}$ is a set of probability measures absolutely continuous with respect to $\nu$ and with bounded density (Radon-Nikodym derivative). 
+
+Observe that for any $\mu\in \mathcal{M}$ we have that $\|\cdot\|_{2,\mu}\le C\|\cdot\|_{2,\nu}$ and thus both $\mathcal{F}$ and $\mathcal{S}$ are Hilbert spaces for any $\mu$ (closed subspaces of $L^2(\mu)$). This is the main reason why we need Assumption \ref{abs_cont} and consider $\mu$ with  bounded Radon-Nikodym derivative. Of course there are weaker assumptions that will guarantee the same result, but we choose these two for their simplicity. 
+
+%Discuss assumption 2.2.!
+
+\subsection{GMM framework}
+
+In this paper we are using a familiar GMM framework \parencite[see][]{hansen1982large}, although our focus is somewhat different from the usual one. Our main objective is to work with misspecified models and in order to do this we need to introduce two sets of moment conditions: one set describes the ``true" model, while the second set describes the model that a researcher is going to use in practice. 
+
+One particular conceptual problem with misspecified models is that typically when the researcher changes the model she frequently (and typically implicitly) changes the \textbf{question} she is trying to answer. This makes misspecification controversial -- one can always argue that the answer is right, but the question is different.
+
+ Below we consider a specific type of models and a specific type of misspecification that allows one to talk about changing the model without essentially changing the question. Clearly, the logic ``different model"-``different question" still applies, but we believe that in our setup it is mostly sophistical. 
+
+To introduce the first model we need some additional definitions. Let $l$ be some fixed number, let $K\le \infty$ and consider the following three functions: $\psi_1: \mathbb{R}\times\mathbb{R}\times \mathbb{R}^{d_2}\times \mathbb{R}^l \rightarrow \mathbb{R}$, $\psi_2: \mathbb{R}\times\mathbb{R}^{d_1}\times \mathbb{R}^{d_2}\times \mathbb{R}^{l} \rightarrow \mathbb{R}^{K}$ and $\psi_3: \mathbb{R}^{d_1}\times\mathbb{R}^{d_2}\times \mathbb{R}^l \rightarrow \mathbb{R}^{l}$. 
+
+Our set of moments is given by the following system:
+
+
+\begin{equation}\label{true_cond}
+\begin{cases}
+\mathbb{E}_{\mu}[\psi_1(\theta, f(X), H,\gamma)] = 0\\
+\mathbb{E}_{\mu}[\psi_2(f(X),X,H,\gamma)]=0\\
+\mathbb{E}_{\mu}[\psi_3(X,H,\gamma)] = 0
+\end{cases}
+\end{equation}
+where $f\in \mathcal{S}$, $\theta \in \mathbb{R}$, $\gamma \in \mathbb{R}^l$ and $\mu\in \mathcal{M}$. We emphasize that both $\psi_1$ and $\psi_2$ have as its argument value $f(X)$, not a function $f$. At the same time solution of system (\ref{true_cond}) defines some particular $f^{\star}$.
+
+In this paper we abstract from all technical issues regarding existence and uniqueness of solution to (\ref{true_cond}). We make the following assumption:
+
+\begin{assumption}\label{tech_uniq}
+All moment condition systems considered in the paper have a unique solution. 
+\end{assumption}
+
+\noindent Some sufficient conditions under which this assumption holds can be found in many different papers and we are not going to state them here. Let $(\theta^{\star},\gamma^{\star},f^{\star})$ be the solution of system (\ref{true_cond}). By construction we have that $f^{\star}\in \mathcal{S}$.
+
+The main parameter of interest in system (\ref{true_cond}) is $\theta$, while $f$ and $\gamma$ are two distinct nuisance parameters.\footnote{Technically speaking in this setup we have more nuisance parameters than just $(f,\gamma)$, since system (\ref{true_cond}) need not fully specify the probability model. In what follows we will be interested only in $f$ and thus we won't need to define these additional nuisances.}  One should think about $\gamma \in \mathbb{R}^l$ as a low-dimensional parameter. If $n$ is a potential sample size, then $l \ll n$. Note that $\gamma$ and $f$ are defined separately from $\theta$. Second moment condition is $K$-dimensional, where, potentially, $K$ can be infinite, and thus our framework includes conditional moment restrictions. 
+
+Our main interest in system (\ref{true_cond}) is in its first condition:
+\begin{equation}\label{definition}
+\mathbb{E}_{\mu}[\psi_1(\theta, f(X), H,\gamma)] = 0
+\end{equation}
+We view restriction (\ref{definition}) as a \textbf{definition} of the main parameter of interest $\theta$ given $f$, $\gamma$ and $\mu$. In order to make this view operational we need additional assumption. 
+
+Let $\Phi : \mathbb{R}\times \mathcal{S}\times \mathbb{R}^{l}\times \mathcal{M}\rightarrow \mathbb{R}$ be defined in the following way: $\Phi(\theta, f, \mu, \gamma):=  \mathbb{E}_{\mu}[\psi_1(\theta, f(X), H,\gamma)]$.
+
+\begin{assumption}\label{func_exist}
+For any $(f,\mu,\gamma)\in \mathcal{S}\times \mathcal{M}\times \mathbb{R}^{l}$ equation $\Phi(\theta, f, \mu, \gamma)=0$ has a unique solution. Denote it by  $\tau: \mathcal{S}\times \mathcal{M}\times \mathbb{R}^{l}\rightarrow \mathbb{R}$, that is $\Phi(\tau(f,\mu,\gamma),f,\mu,\gamma)=0$ for all $(f,\mu,\gamma)$.
+\end{assumption}
+
+We explicitly assume existence, instead of giving some sufficient conditions on function $\psi_1$ and measure $\mu$ that will guarantee it. The main reason for this is our belief that in applications it will be more or less straightforward to verify this assumption directly, constructing the functional $\tau$, at least locally, instead of verifying some sufficient conditions which necessarily will be  to stringent to be universally applicable. 
+
+Functional $\tau$ will be the main object of interest in this paper. Its meaning is straightforward: given the nuisance parameters $f$, $\gamma$ and measure $\mu$ it gives us the ``answer" to the question of interest. 
+
+System (\ref{true_cond}) describes the ``true" model. However, we assume that in reality researcher will use a different system. Let  $\tilde{\psi}_2:\mathbb{R}\times\mathbb{R}\times\mathbb{R}^{d_1}\times \mathbb{R}^{d_2}\times \mathbb{R}^l\times\mathbb{R}^m \rightarrow \mathbb{R}^{m}$ and $\tilde{\psi_3}: \mathbb{R}^{d_1}\times\mathbb{R}^{d_2}\times \mathbb{R}^{\tilde l} \rightarrow \mathbb{R}^{\tilde{l}}$, where $\tilde{l}>l$ and consider the following set of moments:
+\begin{equation}\label{used_cond}
+\begin{cases}
+\mathbb{E}_{\mu}[\psi_1(\theta, f(\eta,X), H,\gamma_1)] = 0\\
+\mathbb{E}_{\mu}[\tilde{\psi}_2(f(\eta,X),\theta,X,H,\gamma_1,\gamma_2,\eta]=0\\
+\mathbb{E}_{\mu}[\tilde{\psi_3}(X,H,\gamma_1,\gamma_2)] = 0
+\end{cases}
+\end{equation}
+where $\eta \in \mathbb{R}^m$, $\gamma_1\in \mathbb{R}^l$, $\gamma_2\in \mathbb{R}^{\tilde{l} - l}$ and $f(\eta)\in \mathcal{S}$ for each $\eta$. The main difference between systems (\ref{true_cond}) and (\ref{used_cond}) is that nuisance parameters are defined differently. Note that parameter $\eta$ is $m$-dimensional, and one should think of $m$ as small relative to reasonable sample size. The primary reason why researches might use system (\ref{used_cond}) instead of ``true" system (\ref{true_cond}) is the simplicity of the former. We look at two particular examples of such simplification in the next subsection.
+
+
+The main parameter $\theta$ is still defined using the same moment condition and thus we can use the same functional $\tau$ to answer the question of interest. Let $(\theta^{\star\star},\eta^{\star\star},\gamma_1^{\star\star}, \gamma_2^{\star\star})$ be the solution of system (\ref{used_cond}), then we have $\theta^{\star\star} = \tau(f(\eta^{\star\star}),\gamma_1^{\star},\mu)$. 
+
+This emphasizes once again the role of $\tau$ as a \textbf{defintion} of the parameter of interest. Researchers can use different sets of moment conditions to pin down the nuisance parameters but the definition of the main parameter stays the same. Specific structure of systems (\ref{true_cond}) and (\ref{used_cond}), mainly the fact that $\psi_1$ is always used to define $\theta$, allows us to meaningfully talk about changing the ``model" $f$ without changing the ``question" $\tau$.
+
+
+
+\subsection{Examples}
+System (\ref{true_cond}) is general enough to include lots of applications of interest. We will discuss two simple applications below. In both application functional $\tau$ will be linear in $f$.\footnote{Technically speaking these functionals are affine but we abuse definition slightly for better readability.}
+
+\subsubsection{Constant treatment effects under unconfoundedness}
+% cite Imbeds Rubin!
+We work in traditional potential outcome framework \parencite[see][]{imbens2015causal}. Let $H = (Y,T)$ where $Y$ is an outcome variable and $T$ is a treatment assignment; $X$ is a vector of attributes. Let $Y(T)$ be a potential outcome function, then by definition we have the following:
+\begin{multline}
+Y = T Y(1) + (1-T) Y(0) = \mathbb{E}_{\mu}[Y(0)] + \mathbb{E}_{\mu}[Y(0)-\mathbb{E}_{\mu}[Y(0)]|X] + \\
+\left(Y(1)-Y(0)\right) T + \varepsilon
+\end{multline}
+Assuming that $Y(1)-Y(0)= \theta$, we have the following:
+\begin{equation}
+Y = \alpha + f(X) + \theta T + \varepsilon
+\end{equation}
+where $\alpha = \mathbb{E}_{\mu}[Y(0)]$, $f(X) = \mathbb{E}_{\mu}[Y(0)-\mathbb{E}_{\mu}[Y(0)]|X]$ and $\varepsilon = Y(0) - \mathbb{E}_{\mu}[Y(0)|X]$. We assume identifying moment condition (unconfoundedness):
+\begin{equation}
+\mathbb{E}_{\mu}[\varepsilon|T,X] = 0
+\end{equation}
+which implies the following:
+\begin{multline}\label{unc_mc}
+\begin{cases}
+\mathbb{E}_{\mu}[(Y-f(X)-\theta T)(T-\mathbb{E}_{\mu}[T])] = 0\\ 
+\mathbb{E}_{\mu}[Y-\mathbb{E}_{\mu}[Y|T=0]-f(X)|X, T=0]=0
+\end{cases} \Rightarrow\\
+\begin{cases}
+\theta = \frac{\mathbb{E}_{\mu}\left[(Y-f(X))(T-\mathbb{E}_{\mu}[T])\right]}{\mathbb{V}_{\mu}[T]} \\
+f(X) = \mathbb{E}_{\mu}\left[Y-\mathbb{E}_{\mu}[Y|T=0]|X, T=0\right]
+\end{cases}
+\end{multline}
+In this setup we are interested in the following functional:
+\begin{equation}\label{unc}
+\tau(f,\mu,\gamma) = \frac{\mathbb{E}_{\mu}\left[(Y-f(X))(T-\mathbb{E}_{\mu}[T])\right]}{\mathbb{V}_{\mu}[T]} \\
+\end{equation}
+Note, that it indeed depends on $\mu$ and $f$; also observe that for a fixed $\mu$ this functional is in fact linear in $f$.
+
+It is logical to view (\ref{unc}) as a \textbf{definition} of a parameter of interest in this setup. Observe that $f(X)$ is non-parametrically identified here separately from $\theta$ using a conditional moment restriction in (\ref{unc_mc}). At the same time, in empirical work one is likely to use a particular parametric family for $f$ (e.g., first-order polynomials) and might use different moment conditions to identify parameters of this family. This potentially leads to a misspecification of $f$. At the same time, this misspecification doesn't change definition (\ref{unc}). We present a particular case below.
+
+
+Clearly this example fits in our general GMM framework. Let $\{g_1,\dots, \}$ be a countable basis of $\mathcal{S}$.  In this case we have the following functions:
+\begin{equation}
+\begin{cases}\label{true_unc}
+\psi_1(\theta,f,H,\gamma) = (Y-f(X)-\theta T)(T-\gamma_1)&\\
+\psi_2(f,X,H,\gamma) = (Y-\gamma_2-f(X))(1-T)g_i, &\text{ for $i = 1,\dots, n,\dots$}\\
+\psi_3(X,H,\gamma) = \begin{pmatrix} T-\gamma_1\\ Y(1-T)-\gamma_2 (1-T)\\\end{pmatrix}&
+\end{cases}
+\end{equation}
+In this case the second moment restriction is in fact infinite-dimensional and in practice researchers will somehow simplify it. One way to accomplish it is to assume a particular parametric structure on $f$. 
+
+Let $\eta$ be a $k$-dimensional parameter and consider a potentially nonlinear parameterization $f(x) = f(\eta, x)$. For this specification researchers are likely to derive moment restriction as the first order conditions to the following problem:
+
+\begin{equation}
+\mathbb{E}_{\mu}\left[\left(Y-\alpha-f(\eta, X) - \theta T\right)^2\right] \rightarrow \min_{\alpha, \eta, \theta}
+\end{equation}
+In this case we can rewrite solution to this problem in the following way:
+\begin{equation}
+\begin{cases}
+\mathbb{E}_{\mu}\left[(Y-f(\eta,X)-\theta T)(T-\gamma_1)\right]=0&\\
+\mathbb{E}_{\mu}\left[(Y-\alpha -f(\eta,X)-\theta T)\left(\frac{\partial f(\eta, X)}{\partial \eta}\right)^T \right]=0 \\
+\mathbb{E}_{\mu}\left[(Y-\alpha -f(\eta,X)-\theta T)\right] = 0\\
+\mathbb{E}_{\mu}\left[\left(T-\gamma_1\right)\right] = 0\\
+\end{cases}
+\end{equation}
+where we assume all necessary differentiability and integrability conditions. In this case we have the following definition of $\tilde{\psi_2}$:
+\begin{equation}\label{psi_unc}
+\tilde{\psi_2} = \begin{pmatrix} ((Y-\alpha -f(\eta,X)-\theta T)\left(\frac{\partial f(\eta, X)}{\partial \eta}\right)^T\\
+Y-\alpha -f(\eta,X)-\theta T\\
+\end{pmatrix}
+\end{equation}
+Note that $\tilde{\psi_2}$ depends on $\theta$. 
+
+Clearly, there are other potential models that researcher can consider in order to go from the general model (\ref{true_unc}) to something more tractable. In our next example we will discuss another way to simplify the model.
+
+
+
+\subsubsection{Constant treatment effects with one sided compliance}
+Let $H = (Y, T, Z)$, where $Z$ is a binary instrumental variable, and all other variables are the same as in the previous example. One sided compliance implies that $T\{Z=0\} = 0$. We again assume that $Y(1)-Y(0) = \theta$ and end up with the same model:
+\begin{equation}
+Y = \alpha + f(X) + \theta T + \varepsilon
+\end{equation}
+where $\alpha = \mathbb{E}_{\mu}[Y(0)]$, $f(X) = \mathbb{E}_{\mu}[Y(0)-\mathbb{E}_{\mu}[Y(0)]|X]$ and $\varepsilon = Y(0) - \mathbb{E}_{\mu}[Y(0)|X]$. This time we assume a different moment restriction:
+\begin{equation}\label{iv_res}
+\mathbb{E}_{\mu}[\varepsilon|X,Z] = 0
+\end{equation}
+which now implies the following:
+\begin{multline}\label{iv_mc}
+\begin{cases}
+\mathbb{E}_{\mu}[(Y-f(X)-\theta T)(Z-\mathbb{E}_{\mu}[Z])] = 0\\ 
+\mathbb{E}_{\mu}[Y-\mathbb{E}_{\mu}[Y|Z=0]-f(X)|X, Z=0]=0
+\end{cases} \Rightarrow\\
+\begin{cases}
+\theta = \frac{\mathbb{E}_{\mu}\left[(Y-f(X))(Z-\mathbb{E}_{\mu}[Z])\right]}{\mathbb{E}_{\mu}\left[T(Z-\mathbb{E}_{\mu}[Z])\right]} \\
+f(X) = \mathbb{E}_{\mu}\left[Y-\mathbb{E}_{\mu}[Y|Z=0]|X, Z=0\right]
+\end{cases}
+\end{multline}
+In this setup we are interested in the following functional:
+\begin{equation}\label{iv}
+\tau(f,\mu,\gamma) =  \frac{\mathbb{E}_{\mu}\left[(Y-f(X))(Z-\mathbb{E}_{\mu}[Z])\right]}{\mathbb{E}_{\mu}\left[T(Z-\mathbb{E}_{\mu}[Z])\right]} 
+\end{equation}
+which is again linear in $f$ for a fixed $\mu$.
+
+As before (\ref{iv}) can be viewed as a definition of parameter of interest which depends on some non-parametrically identified function $f$. Again, in practice one can use different restrictions to identify $f$, but still use (\ref{iv}) to compute the parameter of interest. This allows us to consider misspecification of $f$ separately from definition of treatment effect. 
+
+This example fits in the general GMM framework using the following functions ($\{g_1,\dots\}$ is a basis of $\mathcal{S}$ as before):
+\begin{equation}
+\begin{cases}\label{true_iv}
+\psi_1(\theta,f,H,\gamma) = (Y-f(X)-\theta T)(Z-\gamma_1)&\\
+\psi_2(f,X,H,\gamma) = (Y-\gamma_2-f(X))(1-Z)g_i, &\text{ for $i = 1,\dots, n,\dots$}\\
+\psi_3(X,H,\gamma) = \begin{pmatrix} Z-\gamma_1\\ Y(1-Z)-\gamma_2 (1-Z)\\\end{pmatrix}&
+\end{cases}
+\end{equation}
+
+In reality researchers might use the following slightly different and simpler set of moment restrictions:
+\begin{equation}
+\begin{cases}\label{fake_iv}
+\mathbb{E}_{\mu}\left[(Y-\sum_{i=1}^m\beta_i g_i-\theta T)(Z-\gamma)\right]=0&\\
+\mathbb{E}_{\mu}\left[(Y-\alpha-\sum_{i=1}^m\beta_i g_i-\theta T)g_i\right] = 0, &\text{ for $i = 1,\dots, m$}\\
+\mathbb{E}_{\mu}\left[(Y-\alpha-\sum_{i=1}^m\beta_i g_i-\theta T)\right] = 0\\
+\mathbb{E}_{\mu}\left[(Z-\gamma)\right]=0 &\\
+\end{cases}
+\end{equation}
+
+To construct moment conditions in (\ref{fake_iv}) we used restriction (\ref{iv_res}) directly and first $m$ functions from $\{g_1,\dots, \}$. In this case $\tilde{\psi_2}$ is given by the following function:
+\begin{equation}\label{psi_iv}
+\tilde{\psi_2} = \begin{pmatrix}
+(Y-\alpha-\sum_{i=1}^m\beta_i g_i-\theta T)g_i  &\text{ for $i = 1,\dots, m$}\\
+Y-\alpha-\sum_{i=1}^m\beta_i g_i-\theta T\\
+\end{pmatrix}
+\end{equation}
+
+In practice researchers might experiment with different bases and select $m$ based on some sample size related procedure. 
+
+\subsection{Discussion}
+The main purpose of this section was to formally define $\tau$ in a way that allows us to discuss misspecification. The fact that $\tau$ is defined for any $(f,\gamma)$ allows us to change definition of nuisance without changing the question. 
+
+The price that we pay for this convenience is high: there are other important forms of misspecification that are left out of the picture. Of course we would like to consider frameworks in which $\psi_1$ is misspecified as well but we don't know how to do this in a coherent way. At the same time, lots of applications either fall directly in our framework or can be reframed in a way that would fit in.
+
+Indeed, when writing a model researcher has in mind several different ways to set it up, without changing the question she is trying to answer. This implies that there is  separation (at least mental) of the question and the model that is used to answer it. In our framework we formalize this separation in one particular way which was chosen for its simplicity and operational convenience. 
+
+Important limitation of our discussion is that both $f$ and $\theta$ are assumed to be one-dimensional. There is nothing in the current setup that precludes both of them to be multidimensional. We focus on one-dimensional setup because of its simplicity and because it already spans lots of applications.
+
+Another important limitation of our framework is that we focus on exactly identified systems. Technically, this is not a limitation, because any estimation method that we are familiar with, transforms overidentified system into exactly identified system.\footnote{For example, this is true for GMM that EL. In the former we transform the overidentified system using random linear transformation that depends on the weight matrix, while in the latter we add parameters in such a way that the resulting system is exactly identified.} On the conceptual level over-identified systems are tricky: if we allow for misspecification then over-identified system might not have a solution (in population) which implies that the definition of parameter of interest depends on the method that we are using to solve the over-identified system. This is an important point by itself and we believe that it deserves a separate treatment. 
+
+\section{Sensitivity}
+
+In this section we define the most important object of the paper -- sensitivity of $\tau$ to local perturbations in $f$. Sensitivity is nothing more than just a particular kind of derivative of $\tau$ with respect to $f$. The main gain comes from the fact that this derivative can be easily computed, estimated in sample and interpreted.
+
+\subsection{Motivation}
+
+In notation of the previous section the main object of interest is $\tau(f^{\star}, \mu,\gamma^{\star})$ while in practice researchers focus on $\tau(f^{\star\star},\mu,\gamma^{\star\star})$. Starting from this section we will use $f$ for $f^{\star}$ and $\hat f$ for $f^{\star\star}$. We assume that $\gamma^{\star} = \gamma^{\star\star}$ and thus the only problem that researcher faces is that $f \ne \hat f$. We abuse notation and write $\tau(f,\mu)$, suppressing dependence on $\gamma$.
+
+In this setup the main object of interest is the size of  discrepancy between $\tau(\hat f,\mu)$ and $\tau(f, \mu)$: $|\tau(\hat f, \mu) - \tau(f, \mu)|$. We separate this bias into two parts:
+\begin{equation}
+|\tau(\hat f, \mu) - \tau(f, \mu)| = \|\hat f -f\|_2 \frac{|\tau(\hat f, \mu) - \tau(f, \mu)|}{\|\hat f -f\|_2} = e\times \delta
+\end{equation}
+ where $e = \|\hat f -f\|_2$ and $\delta =  \frac{|\tau(\hat f, \mu) - \tau(f, \mu)|}{\|\hat f -f\|_2} $. 
+ 
+This factorization is useful because it allows us to think about the bias as a combination of the size of misspecification $e$ and sensitivity to misspecification $\delta$. In practice it would be typically impossible to asses neither $e$ nor $\delta$. At the same time, operationally these two objects are quite different: in order to bound $e$ we need to have a good idea what $f$ looks like, while $\delta$ is in a sense a derivative and thus might be somehow bounded without any knowledge of $f$.
+
+In both our examples we have an operational definition of $f$ -- it is a particular conditional expectation. This fact will later allow us to compute $e$. However, in other setups $f$ can be just a nuisance parameter that doesn't have any operational definition and thus it will be hard to estimate $e$. On more abstract level we might be unsure what we actually mean by ``true" $f$ and might have several exclusive definitions of it. 
+
+In practice it is often unreasonable to assume that $e$ is huge -- typically we choose specifications that we believe are close to the ``correct" one. As a result, one can somewhat arbitrarily bound $e$ by $\alpha \|\hat f\|_2$ for some small $\alpha$ (e.g., $\alpha = 0.05$). 
+
+Small $e$ suggests that in order to bound $\delta$ we should focus on behavior of $\tau$ in the neighborhood of $\hat f$. This makes our approach inherently local, which at the end allows us to bound $\delta$ by an easily computable quantity. 
+
+
+
+\subsection{Definition}
+
+Throughout this section we assume that $\mu$ is known, essentially working in population. Given the functional $\tau$ and function $\hat f$ we would like to compute sensitivity of $\tau$ to small changes in $\hat f$. Since we are working in a linear space of functions it is natural to consider perturbations from some closed subspace of $\mathcal{S}$. Let $\mathcal{G}$ be (potentially infinite dimensional) subspace of $\mathcal{S}$.\footnote{Note that since $\mathcal{G}$ is a linear subspace it contains zero function.}  We define sensitivity in the following way:
+
+\begin{definition}
+Given $\mathcal{G}$, $\tau$, $\hat f$ and $\varepsilon > 0$ define $\delta(\tau, \hat f, \mathcal{G}, \varepsilon)$ as follows:
+\begin{equation}
+\delta(\tau, \hat f, \mathcal{G},\varepsilon) \equiv \sup_{g\in \mathcal{G}: \| g\|_2 \le \varepsilon}\left\{\frac{\tau(\hat f+g,\mu)-\tau(\hat f, \mu)}{\varepsilon}\right\}
+\end{equation}
+\end{definition}
+
+Essentially $\delta(\tau, \hat f, \mathcal{G},\varepsilon)$  quantifies a maximal sensitivity given a $\varepsilon$-small perturbation of $\hat f$. This definition has two major problems: it depends on the $\varepsilon$ and it is completely non-operational -- we can't compute $\delta(\tau, \hat f, \mathcal{G},\varepsilon)$ with it. We solve both of these problems assuming that $\tau$ can be well approximated by a linear functional up to second order terms. 
+
+\begin{assumption}\label{Frechet} 
+For any $\mu\in\mathcal{M}$, $\tau$ is a Fr\'echet differentiable functional of $f$.
+\end{assumption}
+
+In this subsection we explicitly assume differentiability of $\tau$. We will give sufficient conditions for this assumption to hold in the GMM framework in the next subsection.
+
+
+By definition of differentiability we have that $\tau$ can be approximated in $L^2$ norm by the continuous linear functional. Since we are working in Hilbert space of functions, by the Reisz representation theorem we have the following corollary:
+\begin{corollary}\label{cor_1}For each fixed $\mu$ and $f$ $\tau$ has the following representation:
+\begin{equation}
+\tau(f+g,\mu) = \tau(f,\mu) + \mathbb{E}_{\mu}[\nabla_{\tau}(f)g] + o(\|h\|)
+\end{equation}
+where $\nabla_{\tau}(f) \in \mathcal{F}$.
+\end{corollary}
+
+By definition $\nabla_{\tau}(f)$ is a function from $\mathcal{F}$. Since $h$ in the corollary above is the member of $\mathcal{S}$ it is clear that $\nabla_{\tau}(f)$ can't be unique -- only its projection on $\mathcal{S}$ matters for the linear part. As we will show below it doesn't matter for the sensitivity. In our examples we will select a particular version of $\nabla_{\tau}(f)$.
+
+We assumed differentiability of the functional in order to use its linear part in the definition of sensitivity. This leads as to the following:
+\begin{definition}
+Given $\tau$, $\hat f$ and $\mathcal{G}$ linearized sensitivity is defined by the following expression:
+\begin{equation}
+\Delta(\tau,\hat f,\mathcal{G})\equiv \sup_{g\in \mathcal{G}: \| g\|_2 \le \varepsilon}\left\{\frac{\mathbb{E}_{\mu}[\nabla_{\tau}(f)g]}{\varepsilon}\right\} =  \sup_{g\in \mathcal{G}: \| g\|_2 \le 1}\left\{\mathbb{E}_{\mu}[\nabla_{\tau}(\hat f)g]\right\} 
+\end{equation}
+\end{definition}
+\noindent Note that dependence on $\varepsilon$ goes away, since in the linear case it is just scaling. As a result we can assume that $\varepsilon = 1$.
+
+Observe that by construction we have the following relationship:
+\begin{multline}
+|\delta(\tau, \hat f, \mathcal{G},\varepsilon)-\Delta(\tau,\hat f,\mathcal{G})| \le\\
+  \sup_{g\in \mathcal{G}: \| g\|_2 \le \varepsilon}\left\{\left|\frac{\tau(\hat f+g,\mu)-\tau(\hat f, \mu)}{\varepsilon}- \frac1{\varepsilon}\mathbb{E}_{\mu}[\nabla_{\tau}(f)g] \right|\right\}
+\end{multline}
+Fr\'echet differentiability is a very strong notion of differentiability that implies that the right-hand side of the inequality above goes to zero. This allows us to state the following corollary. 
+\begin{corollary}  
+$\Delta(\tau,\hat f,\mathcal{G}) = \lim_{\varepsilon\rightarrow 0} \delta(\tau, \hat f, \mathcal{G},\varepsilon)$
+\end{corollary}
+
+Corollary shows that linearized sensitivity is a limit of the ordinary one as $\varepsilon$ goes to zero.  Linearized sensitivity has one main advantage over the ordinary sensitivity: it can be easily computed, as the following trivial lemma shows.
+
+\begin{lemma}
+ Let $P_{\mathcal{G}}$ be an operator of orthogonal projection on $\mathcal{G}$. Then $\Delta(\tau, \hat f, \mathcal{G}) = \| P_{\mathcal{G}}(\nabla_{\tau}(\hat f))\|_2$.
+ \end{lemma}
+
+\begin{proof}
+ Since $\mathcal{G}$ is a closed linear subspace operator $P_{\mathcal{G}}$ is well defined. Since $\nabla_{\tau}(\hat f)$ is a vector from $\mathcal{F}$ and $\mathcal{G}$ is a closed subspace of $\mathcal{F}$ we have the following representation: $\nabla_{\tau}(\hat f) = \lambda g^{\star} + h$, where $g^{\star} \in \mathcal{G}$, $\| g^{\star}\|_2 = 1$ and $h$ is orthogonal to $\mathcal{G}$. As a result $\Delta(\tau,\hat f,\mathcal{G}) = |\lambda| \sup_{g\in \mathcal{G}: \| g\|_2\le 1}\left\{ \mathbb{E}_{\mu}[g^{\star} g]\right\}= |\lambda| = \|P_{\mathcal{G}}(\nabla_{\tau}(\hat f))\|_2 $.
+ \end{proof}
+
+
+This lemma shows that linearized sensitivity is nothing more than a length of a projection of a certain vector on the linear subspace $\mathcal{G}$. This suggests a way of actually computing sensitivity in samples and emphasizes the role of vector $\nabla_{\tau}(\hat f)$. If one can easily find $\nabla_{\tau}(\hat f)$ then the sensitivity can be computed. As we show below this is true in our examples.
+
+\subsection{Examples}
+
+\subsubsection{Constant treatment effects under unconfoundedness}
+
+In this example our functional is given by the following formula:
+
+\begin{equation}
+\tau(f,\mu) = \frac{\mathbb{E}_{\mu}\left[(Y-f(X))(T-\mathbb{E}_{\mu}[T])\right]}{\mathbb{V}_{\mu}[T]} 
+\end{equation}
+
+As we discussed before this a linear functional and thus one can readily observe that Freshet derivative is equal to the following:
+\begin{equation} 
+\nabla_{\tau}(f) = \frac{(T-\mathbb{E}_{\mu}[T])}{\mathbb{V}_{\mu}[T]}
+\end{equation}
+Observe that $\nabla_{\tau}(f)$ is observable in sample up to recentering and scaling (two unknown constants which are trivial to estimate). As a result, sensitivity will be large if function from $\mathcal{G}$ can predict $T$ well enough. Also observe that sensitivity will be large if $\mathbb{V}_{\mu}[T]$ is small which will happen if distribution of $T$ is skewed: either control or treatment group is disproportionally large. 
+
+In this case we can actually represent sensitivity in slightly different way. Assume that $\mathcal{G}$ is a finite dimensional linear subspace and let $\{g_1,\dots, g_d\}$ be an orthonormal basis of this space. By construction we have the following:
+\begin{equation}
+\mathbb{E}_{\mu}[\nabla_{\tau}(f) g_i] =  \frac{\mathbb{E}_{\mu}[(T-\mathbb{E}_{\mu}[T])g_i]}{\mathbb{V}_{\mu}[T]} = \mathbb{E}_{\mu}[g_i|T=1]- \mathbb{E}_{\mu}[g_i|T=0]=\beta_i
+\end{equation}
+and one can see that $\beta_i$ is essentially a measure of \textbf{imbalance} in distribution of $T$ with respect to direction $g_i$. By orthogonality we have the following:
+\begin{equation}
+P_{\mathcal{G}}(\nabla_{\tau}(f)) = \sum_{i=1}^d\beta_i g_i
+\end{equation}
+and as a result $\|P_{\mathcal{G}}(\nabla_{\tau}(f))\|_2 = \sqrt{\sum_{i=1}^d \beta_i^2}$. We can see that in this case sensitivity is nothing more than a particular measure of imbalance with respect to directions $\{g_1,\dots, g_d\}$. This suggests that experimental studies in which covariates are well balance across the groups should have low sensitivity. 
+
+\subsubsection{Constant treatment effects with one sided compliance}
+
+In this example functional is just an IV-type projection coefficient:
+
+\begin{equation}
+\tau(f,\mu) =  \frac{\mathbb{E}_{\mu}\left[(Y-f(X))(Z-\mathbb{E}_{\mu}[Z])\right]}{\mathbb{E}_{\mu}\left[T(Z-\mathbb{E}_{\mu}[Z])\right]} 
+\end{equation}
+which is linear as in the previous example and thus we have the following expression for the derivative:
+\begin{equation}
+\nabla_{\tau}(f) =  \frac{(Z-\mathbb{E}_{\mu}[Z])}{\mathbb{E}_{\mu}\left[T(Z-\mathbb{E}_{\mu}[Z])\right]} 
+\end{equation}
+
+We can see that in this example sensitivity will be large if we can predict $Z$ well enough using function from $\mathcal{G}$. As before $\nabla_{\tau}(\hat f)$ is observable up to two unknown constants. In denominator we have a covariance between $Z$ and $T$ and the smaller it is, the larger is sensitivity. Small covariance is an indicator of a weak instrument.
+
+\subsection{Sensitivity in GMM framework}
+
+In this case our functional is given implicitly by the following moment condition:
+
+\begin{equation}
+\mathbb{E}_{\mu}[\psi_1(\tau(f,\mu),f(X),H)]  = 0
+\end{equation}
+
+Consider a variation of $f$ in direction $g$ with step $\lambda$. Proceeding heuristically we have the following:
+
+\begin{multline}
+\mathbb{E}\left[\frac{\partial \psi_1(\theta, f, H)}{\partial \theta}|_{\theta = \tau(f,\mu)} d\tau + \frac{\partial \psi_1(\tau(f,\mu),\theta, H)}{\partial \theta}|_{\theta = f(X)} gd\lambda  \right] = 0 \Rightarrow \\
+\frac{d\tau(f+\lambda g,\mu)}{d\lambda} = -\frac{\mathbb{E}\left[\left(\frac{\partial \psi_1(\tau(f,\mu),\theta, H)}{\partial \theta}|_{\theta = f(X)}\right)g\right]}{\mathbb{E}\left[\frac{\partial \psi_1(\theta, f, H)}{\partial \theta}|_{\theta = \tau(f,\mu)}\right]}
+\end{multline}
+This derivation suggests that in this case $\nabla_{\tau}(f)$ is given by the following expression:
+\begin{equation}\label{gmm_frech}
+\nabla_{\tau}(f) =-  \frac{\left(\frac{\partial \psi_1(\tau(f,\mu),\theta, H)}{\partial \theta}|_{\theta = f(X)}\right)}{\mathbb{E}\left[\frac{\partial \psi_1(\theta, f, H)}{\partial \theta}|_{\theta = \tau(f,\mu)}\right]}
+\end{equation}
+
+This intuition is correct if we assume some further smoothness conditions. Recall that  $\Phi(\theta, f, \mu):=  \mathbb{E}_{\mu}[\psi_1(\theta, f(X), H)]$.
+\begin{theorem}
+Assume  that $\Phi$ is Fr\' echet differentiable with respect to its two arguments at point $(\tau(\hat f, \mu),\hat f,\mu)$;  fix $\mu$, assume that for some $\varepsilon>0$ the equation $\Phi(\theta,f,\mu) = t$ has as unique solution $\theta(f,t)$, where $|t|\le \varepsilon$;  assume that the ratio $\frac{\theta(f+h,t)-\theta(f,0)}{|t|+\|h\|_2}$ is bounded as a function of $h$ and $t$ for $(t,h)$ in some bounded subset of $\mathbb{R}\times \mathcal{S}$. Then the functional $\tau$ is Fr\'echet differentiable in the neighborhood of $\hat f$ and its derivative is given by (\ref{gmm_frech}).
+\end{theorem}
+\begin{proof}
+The proof is given in \parencite[][page 22, theorem 3.2.4]{fernholz2012mises}.\footnote{The proof is for Hadamard differentiability but the refinement is straightforward.}
+\end{proof}
+
+Both our examples fit in the GMM framework and it is instructive to check that Fr\'echet derivatives are in fact given by the expression above. This is indeed the case and is left as an exercise for a reader. 
+
+\subsection{Constrained sensitivity} 
+
+Our local measure depends on three things: functional $\tau$, suggested function $\hat f$ and $\mathcal{G}$. Among these three, the first two are essentially given, while the third one should be specified. Since linearized sensitivity is a length of a projection on linear subspace $\mathcal{G}$ it is clear that it crucially depends on this subspace. Sensitivity increases once we consider larger and larger $\mathcal{G}$ and the maximal sensitivity is achieved if we use $\mathcal{G} = \mathcal{S}$.
+
+At the same time, it is clear that it is unreasonable to consider some directions. Indeed, typically while we were constructing $\hat f$ we optimized over some directions and thus there are no reasons to consider them once again. In order to take this into account we suggest the following procedure: we take $\mathcal{G} = \mathcal{S}$ but instead of unconditional supremum in definition of sensitivity we consider a constrained one.
+
+Natural constraint to put on the functions is to assume that they should satisfy moment conditions that were used in constructing $\hat f$. In our notation we suggest the following restriction:
+\begin{equation}\label{full_const}
+g\in \mathcal{S}:\mathbb{E}_{\mu}[\tilde{\psi}_2(\hat f + g,\hat\theta, X, H, \hat\gamma, \hat\eta)]= 0
+\end{equation}
+
+Constrain (\ref{full_const}) is a natural one but it is global, while our operational definition of sensitivity is a local one. Moreover, due to non-linearity constrain (\ref{full_const}) might contain only $g = 0$. Thus it makes sense to substitute it for the following first oder constraint:
+\begin{equation}\label{lin_const}
+g\in \mathcal{S}:\mathbb{E}_{\mu}\left[\left(\frac{\partial \tilde{\psi}_2(\lambda,\hat\theta, X, H, \hat\gamma, \hat\eta)}{\partial \lambda}\right)_{\lambda = \hat f}g\right]= 0
+\end{equation}
+Constraint (\ref{lin_const}) is an extremely easy one: it just describes an orthogonal complement to a $m$-dimensional space spanned by the derivatives of $\tilde{\psi_2}$.  This leads us to the following definition:
+
+\begin{definition}
+Let $\mathcal{C} = \left\{ g \in \mathcal{S}: g = \nu^T\left(\frac{\partial \tilde{\psi}_2(\lambda,\hat\theta, X, H, \hat\gamma, \hat\eta)}{\partial \lambda}\right)_{\lambda = \hat f} \text{, where $\lambda = \mathbb{R}^m$}\right\}$. Then the constrained sensitivity $\Delta^\mathcal{C}$ is defined as the following: $\Delta^\mathcal{C}(\tau,\hat f):= \Delta(\tau,\hat f,\mathcal{S}\setminus \mathcal{C})$.  
+\end{definition} 
+
+Restriction (\ref{lin_const}) might look artificial or unintuitive but as we show below it is very natural in our examples.
+
+\paragraph{Constant treatment effects under unconfoundedness:} In this example function $\tilde{\psi_2}$ is given by the equation (\ref{psi_unc}) and as a result the derivatives in (\ref{lin_const}) are given by the following expression: 
+\begin{equation}
+\left(\frac{\partial \tilde{\psi}_2(\lambda,\hat\theta, X, H, \hat\gamma, \hat\eta)}{\partial \lambda}\right)_{\lambda = \hat f} =
+\begin{pmatrix}
+\left(\frac{\partial f(\eta, X)}{\partial \eta}\right)_{\eta = \hat \eta}\\
+1
+\end{pmatrix}
+\end{equation}
+
+As a result we can see that in this case we are interested in the orthogonal complement of space spanned by the quasi-regressors evaluated at $\hat \eta$.
+
+\paragraph{Constant treatment effects with one sided compliance:} In this example function $\tilde{\psi_2}$ is given by the equation (\ref{psi_iv}) and  the derivatives are given by the following expression: 
+\begin{equation}
+\left(\frac{\partial \tilde{\psi}_2(\lambda,\hat\theta, X, H, \hat\gamma, \hat\eta)}{\partial \lambda}\right)_{\lambda = \hat f} =
+\begin{pmatrix}
+g_i \text{ for $i=1, \dots, m$}\\
+1
+\end{pmatrix}
+\end{equation}
+where $\{g_1,\dots, g_m\}$ are the first $m$ basis vectors. As a result, restriction in (\ref{lin_const}) boils down to a subspace orthogonal to one spanned by $\{1,g_1,\dots, g_m\}$.
+
+
+\subsection{Sharpness of the bound}
+
+Our sensitivity measures the worst case performance and it is instructive to compare it with the actual performance. Actual performance is impossible to compute for the general case because of non-linearities, but it can be done for the case of linear functional $\tau$. We show that the worst-case can indeed be achieved but in reality this is unlikely to happen.
+
+Any linear functional can be written in the following form:
+\begin{equation}
+\tau(f,\mu) = \tau(0,\mu) + \mathbb{E}_{\mu}[\nabla_{\tau} f]
+\end{equation}
+where $\nabla_{\tau}\in \mathcal{F}$. Given this representation we have the following:
+
+\begin{equation}
+\tau(\hat f,\mu)-\tau(f,\mu) = \mathbb{E}_{\mu}[\nabla_{\tau}(\hat f -f)]
+\end{equation}
+
+Let $\{g_1,\dots,g_m, \dots\}$ be a particular basis in $\mathcal{S}$. We use the following representations for $\hat f$ and $f$:
+
+\begin{equation}
+\begin{cases}
+\hat f = \sum_{i=1}^m\beta_i g_i\\
+f = \sum_{i=1}^\infty \beta_i g_i 
+\end{cases}
+\end{equation}
+This representation assumes that $\hat f$ is correct as far as first $m$ basis directions are concerned. As a result we have the following expression for the difference:
+\begin{equation}\label{exp_func}
+\tau(\hat f,\mu)-\tau(f,\mu)  = \mathbb{E}_{\mu}\left[\nabla_{\tau}\left(\sum_{i=m+1}^\infty \beta_i g_i\right)\right]
+\end{equation}
+Next we expand $\nabla_{\tau}$ with respect to $\{g_1,\dots,\}$:
+\begin{equation}\label{exp_nabla}
+\nabla_{\tau}= \sum_{i=1}^{\infty}\gamma_i g_i +\varepsilon
+\end{equation}
+where $\varepsilon$ is orthogonal to $\mathcal{S}$.
+
+Substituting (\ref{exp_nabla}) into  (\ref{exp_func}) we get the following:
+\begin{multline}
+\tau(\hat f,\mu)-\tau(f,\mu)  =  \mathbb{E}_{\mu}\left[\left(\sum_{i=1}^{\infty}\gamma_i g_i +\varepsilon\right)\left(\sum_{i=m+1}^\infty \beta_i g_i\right)\right]= \\
+=\sum_{i=m+1}^{\infty}\gamma_i\beta_i\le  \sqrt{\sum_{j=m+1}^{\infty}\beta_j^2}\sqrt{\sum_{i=m+1}^{\infty}\gamma_i^2} = \|\hat f - f\|_2 \Delta(\tau,\hat f, \mathcal{G})
+\end{multline}
+where the inequality is just Cauchy-Schwarz inequality. As a result equality will be achieved if $\gamma_i = a \beta_i$ for $i=m+1,\dots$. Clearly, this is unlikely to happen in practice. This result  depends on the basis $\{g_1,\dots, g_m,\dots\}$ and adjusting the basis one can come closer to equality.\footnote{One obvious way of achieving equality is to use as a first basis vector $\sum_{i=1}^m \gamma_i g_i$ (normalized). In this case both sides of the inequality are equal to zero.} 
+
+
+
+\subsection{Discussion}
+
+Our measure of sensitivity offers a particular way of answering to the following question: ``How harmful can be a potential misspecification?".  We use the worst case measure and as a result our answer is conservative: if sensitivity is small then we are in the good situation, while if it is large it doesn't necessarily mean that everything is wrong, it's just and indicator that things \textbf{might} go wrong.  
+
+Current research practice suggests a different way of answering this question. Typical empirical paper presents several specifications, typically showing that results don't vary much across specifications. There are many problems with this approach: this is a multiple comparison problem and thus is statistically tricky; presented specifications might not give a full understanding of variability of effect since they are selected at author's discretion; finally, it might be simply impossible to present different specifications because of computational complexity. 
+
+Given all these issues it is quite surprising that our measure can be easily computed and estimated (we discuss estimation in the next section) even for very complex problems. There are conceptually two reasons why this happens: first, we focus on estimation of sensitivity, abstracting from estimation of distance between $f$ and $\hat f$. The second reason is that we linearize the functional and for linear functionals we can apply Cauchy-Schwartz inequality. 
+
+Most of our results are concentrated on study of local perturbations around $\hat f$. We justify it by the following logic: of course our $\hat f$ can be very wrong, but it is the best guess that we have at hand (otherwise we would have used a different $\hat f$) and as a result it is reasonable to explore around $\hat f$. Essentially, we are mimicking the following discussion: everybody agrees that $\hat f$ is a reasonable guess for true $f$, but still worried about potential problems with misspecification. Note that in linear case sensitivity doesn't depend on $\hat f$, but, of course the answer $\tau(\hat f, \mu)$ depends on $\hat f$.
+
+Linearization allows us to compute sensitivity even in nonlinear cases, but of course there is a price - our measure becomes inherently local. However, in light of the discussion that $\hat f$ is the best guess that we have for $f$ we don't think that this is a huge problem. At the end, we are only interested in local perturbations, because global perturbations can lead to completely unreasonable $f$. At the same time, it is clear that for very non-linear functionals our approximation can be quite poor even for reasonably local perturbations (e.g., perturbations of size of 1\% of $\|\hat f\|_2$). This problem can be addressed given a particular application at hand.
+
+Functional $\tau$ depends on two arguments: $f$ and $\mu$. Our discussion is completely centered on the first argument. We always have a good understanding of $\mu$ by means of the empirical measure and thus we don't think that misspecification of $\mu$ presents a particular problem. 
+
+There is a different related question regarding relationship between $\tau$ and $\mu$: in complex models $\tau$ might not have a closed form. One way of understanding this black box is to understand how the functional depends on some characteristics of $\mu$ (moments). This is an interesting computational problem that deserves separate treatment. One approach to this problem is presented in \parencite{gentzkow2014measuring}.
+
+
+\section{Statistical estimation}
+
+\subsection{Statistical setup}
+
+We work in the GMM framework. Moment conditions for $\tau$ and $\hat f$ are given below:
+
+\begin{equation}\label{gmm_stat}
+\begin{cases}
+\mathbb{E}_{\mu}[\psi_1(\theta, f(\eta,X), H,\gamma)] = 0\\
+\mathbb{E}_{\mu}[\tilde{\psi}_2(f(\eta,X),\theta,X,H,\gamma,\eta]=0\\
+\mathbb{E}_{\mu}[\tilde{\psi_3}(X,H,\gamma)] = 0
+\end{cases}
+\end{equation}
+
+We assume that we know solutions to the system (\ref{gmm_stat}) without any error. Essentially, we assume that we know $(\eta,\gamma)$ and as a result $\hat f(x) = f(\eta,x)$ and $\tau(\hat f, \mu)$. This is obviously a simplifying assumption, since in fact all these are random quantities. However, in this section we focus on estimation of sensitivity and all these parameters are of second importance. Moreover, in most practical cases these are low-dimensional parameters which can be estimated very precisely  anyway.
+
+Recall that in this setup crucial quantity for sensitivity is $\nabla_{\tau}(\hat f)$ which in  this case is equal to the following:
+\begin{equation}\label{nabla_stat}
+\nabla_{\tau}(\hat f) =  \frac{\left(\frac{\partial \psi_1(\tau(\hat f,\mu),\theta, H,\gamma)}{\partial \theta}|_{\theta =\hat f(X)}\right)}{\mathbb{E}_{\mu}\left[\frac{\partial \psi_1(\theta, \hat f(X), H,\gamma)}{\partial \theta}|_{\theta = \tau(\hat f,\mu)}\right]}
+\end{equation}
+Since we assume that $\gamma$, $\hat f$ and $\tau(\hat f, \mu)$ are known without error the numerator in (\ref{nabla_stat}) is observable. We further assume that the denominator is known, which given all the assumptions above is quite reasonable. 
+
+Another important quantity that we require in order to estimate sensitivity is the space $\mathcal{C}$. Recall that it is the space spanned by the components of the following $m$-dimensional vector:
+\begin{equation}
+\left(\frac{\partial \tilde{\psi}_2(\lambda,\tau(\hat f, \mu), X, H, \gamma, \eta)}{\partial \lambda}\right)_{\lambda = \hat f}
+\end{equation}
+
+We assume that we observe a random sample $\{(X_i,H_i)\}_{i=1}^n$ from distribution $\mu$. Let $\nabla_{\tau}(\hat f)_i = Y_i$. We use the following shortcuts in what follows:
+\begin{equation}
+\begin{cases}
+Y_i =  \frac{\left(\frac{\partial \psi_1(\tau(\hat f,\mu),\theta, H_i,\gamma)}{\partial \theta}|_{\theta =\hat f(X_i)}\right)}{\mathbb{E}_{\mu}\left[\frac{\partial \psi_1(\theta, \hat f(X), H,\gamma)}{\partial \theta}|_{\theta = \tau(\hat f,\mu)}\right]}\\
+C_{ki} = \left(\frac{\partial \tilde{\psi}_{2k}(\lambda,\tau(\hat f, \mu), X_i, H_i, \gamma, \eta)}{\partial \lambda}\right)_{\lambda = \hat f(X_i)} 
+\end{cases}
+\end{equation}
+Given our assumptions about observable quantities both $Y_i$ and $C_{ki}$ are observable and i.i.d. random variables. Let $C$ be a random $n\times m$ matrix with elements $C_{ki}$.
+
+\subsection{Important identities}  
+
+In our statistical estimation we make use of several simple and well-known identities which are true for any Hilbert space. In order to make discussion more straightforward we summarize them below. 
+
+Let $Y$ be an element of $\mathcal{F}$ -- space of all square-integrable measurable functions of $(X,H)$. Let $\{c_1,\dots, c_m\}$ be a set of $m$ linearly independent functions from $\mathcal{S}$. Let $\mathcal{G}$ be an orthogonal complement (in $\mathcal{S}$) of the linear space spanned by vectors in $\{c_1,\dots, c_m\}$ and let $\{g_1,\dots, g_k, \dots\}$ be its countable basis. Then we have the following two identities:
+
+\begin{equation}\label{2rep_stat}
+\begin{cases}
+Y = \sum_{i=1}^m \beta_i c_i + u^Y\\
+Y =  \sum_{i=1}^m \beta_i c_i +\sum_{i=1}^{\infty} \gamma_i g_i+ \varepsilon^Y\\
+\end{cases}
+\end{equation}
+where $u$ is orthogonal to $\{c_1,\dots, c_m\}$ and $\varepsilon$ is orthogonal to $\{c_1,\dots, c_m\} \cup \{g_1, \dots, g_k,\dots\}$. Essentially, $u^Y$ is a populational residual after projecting $Y$ on the linear space spanned by $\{c_1,\dots, c_m\}$ and $\varepsilon^Y$ is a populational residual after projecting $Y$ on the whole space $\mathcal{S}$. 
+
+Identities in (\ref{2rep_stat}) lead to the following ``Pythagorean"-style results:
+\begin{equation}
+\begin{cases}
+\| Y\|_2^2 = \|  \sum_{i=1}^m \beta_i c_i \|^2 + \| u^Y\|_2^2\\
+\| Y\|_2^2 = \|  \sum_{i=1}^m \beta_i c_i \|^2 + \sum_{i=1}^{\infty} \gamma_i^2+ \| \varepsilon^Y\|_2^2
+\end{cases}
+\end{equation}
+and from here we in turn have the next identity:
+\begin{equation}\label{var_diff}
+\sum_{i=1}^{\infty} \gamma_i^2 =  \| u\|_2^2\ -  \| \varepsilon\|_2^2
+\end{equation}
+Observe that $\sum_{i=1}^{\infty} \gamma_i^2  = \|P_{\mathcal{G}}(Y)\|_2^2$ -- square length of projection of $Y$ on $\mathcal{G}$. Also, observe that if $\hat f = \sum_{i=1}^m \beta_i c_i$ and $f =  \sum_{i=1}^m \beta_i c_i +\sum_{i=1}^{\infty} \gamma_i g_i$ then we have the following identity:
+\begin{equation}\label{distance}
+\|\hat f - f\|_2^2 = \|u^Y\|_2^2 -  \| \varepsilon^Y\|_2^2
+\end{equation}
+Identity (\ref{distance}) is important in the following sense: it quantifies the distance between the conditional expectation $f$ and its approximation $\hat f$.
+
+For the further use define the following two functions: $m(x) = \sum_{i=1}^m\beta_ic_i(x) + \sum_{i=1}^{\infty} \gamma_ig_i(x)$ -- conditional expectation function and $\sigma^{2}(x) = \mathbb{E}[\varepsilon^2|X=x]$ -- conditional variance function.
+
+\subsection{Estimation}\label{estimation}
+In this section we discuss a particular estimation procedure. We defer analysis of the resulting estimator to the next section.
+
+Given the discussion above, and in particular given the identity (\ref{var_diff}) we understand that the we need to estimate the following expression:
+\begin{equation}
+\Delta(\mathcal{G}, \tau,\hat f) = \sqrt{\| u^Y\|_2^2-\|\varepsilon^Y\|_2^2}
+\end{equation}
+In order to do this we use a plug-in estimator: we estimate separately $\|u^Y\|_2^2$ and $\|\varepsilon^Y\|_2^2$. 
+
+Estimation of $\|u^Y\|^2_2$ is straightforward. Recall that $u$ is just a populational residual that is left after projecting $Y$ on a space spanned by $\{c_1,\dots, c_m\}$. As a result we can estimate $\|u^Y\|_2^2$ in the following OLS manner:
+\begin{equation}\label{p_noise}
+\widehat{\|u^Y\|_2^2} = \frac 1n Y^T\left(\mathcal{I}_n - C\left(C^TC\right)^{-1}C^T\right)Y
+\end{equation}
+
+Estimation of $\|\varepsilon\|$ is trickier. Recall that $\varepsilon$ is a population residual left after projecting $Y$ on the whole $\mathcal{S}$. One would think that in order to estimate it's norm we need to construct the aforementioned projection. There is, however, a different way, suggested by \parencite{liitiainen2008nonparametric}.
+
+In order to describe the proposed estimator we need to introduce some additional notation. Let $d_A(X_j, X_k) = \sqrt{ (X_j-X_k)^TA (X_j-X_k)}$, where $A$ is some positive definite matrix. For each $i$ define $Y_i[1]$ using the following algorithm:\footnote{We assume that ties occur with probability zero and thus can be broken arbitrary.}
+\begin{equation}\label{1st_nn}
+Y_i[1] = Y_j: j =\arg\min_{j\ne i} \{d_A(X_i, X_j)\}
+\end{equation}
+that is $Y_i[1]$ is the 1-nearest neighbor of $Y_i$. Let $i[1] = j = \arg\min_{j\ne i} \{d_A(X_i, X_j)\}$. Given $Y_i[k-1]$ define $Y_i[k]$ iteratively using the following algorithm:
+\begin{equation}\label{kth_nn}
+Y_i[k] = Y_j: j =\arg\min_{j\not\in\{i[1],\dots,i[k-1]} \{d_A(X_i, X_j)\}
+\end{equation}
+As a result, $Y_i[k]$ is just a $k$-nearest neighbor of $Y_i$.
+
+Given these definitions we can construct the following estimator:
+\begin{equation}\label{np_noise}
+\widehat{\|\varepsilon^Y\|_2^2} = \frac{\sum_{i=1}^n(Y_i - Y_i[1])(Y_i-Y_i[2])}{n}
+\end{equation}
+Estimator in (\ref{np_noise}) is quite intuitive: both $Y_i[1]$ and $Y_i[2]$ serve as approximations for projection of $Y$ on $\mathcal{S}$. One would think that it is better to use $Y_i[1]$ everywhere instead of $Y_i[2]$ but this intuition is incorrect: since approximation errors in $Y_i[1]$ and $Y_i[2]$ are independent using both of them decreases bias of the estimator. 
+
+As a result the proposed estimator for sensitivity is the following one:
+\begin{equation}\label{diff_est}
+\widehat {\Delta}(\mathcal{G},\tau,\hat f) = \sqrt{\max\left\{\widehat{\|u^Y\|_2^2} -\widehat{\|\varepsilon^Y\|_2^2},0\right\} }
+\end{equation}
+Note that we need to take non-negative part of the difference, since in sample it can be negative. 
+
+
+
+
+Finally, we summarize our estimation procedure in the following algorithm:
+
+\begin{algorithm}[H]
+ \KwData{$\{(Y_i,C_i,X_i)\}_{i=1}^n$}
+Construct $C = (C_1,\dots, C_n)^T$\;
+Construct $\hat u^Y = Y-C\left(C^TC\right)^{-1}C^TY$\;
+Define $\widehat{\|u^Y\|}_2^2:=\frac{1}{n}\sum_{i=1}^n (u_i^Y)^2$\;
+Construct $Y[1]$ and $Y[2]$\;
+Define $\widehat{\| \varepsilon^Y\|}_2^2 : = \frac{1}{n}\sum_{i=1}^n (Y_i-Y_i[1])(Y_i-Y_i[2])$\;
+Return  $\widehat{\Delta}(\tau,\hat f, \mathcal{S}\setminus\mathcal{C}) :=   \sqrt{\max\left\{\widehat{\|u^Y\|_2^2} -\widehat{\|\varepsilon^Y\|_2^2},0\right\}}$ \;
+ \KwResult{$\widehat{\Delta}(\tau,\hat f, \mathcal{S}\setminus\mathcal{C})$}
+ \caption{Computation of sensitivity}
+\end{algorithm}
+\hfill
+
+Proposed algorithm is quite fast. The most computationally intensive steps are (2) and (3). There exist (and implemented in R) algorithms that solve (3) in $O(n\ln(n))$ steps, while (2) requires $O(m^2n)$ steps. Since $m$ is fixed in our framework we have that the complexity of the algorithm is of order $(n\ln(n))$ which is quite fast. 
+
+\subsection{Risk estimation}
+
+Here we focus on bias and variance bounds of our estimator. In order to simplify things we work with square sensitivity, that is we calculate bias and variance for the following quantity:
+\begin{equation}
+\hat\Delta^2 = \max\left\{\widehat{\|u^Y\|_2^2} -\widehat{\|\varepsilon^Y\|_2^2},0\right\} 
+\end{equation}
+Note that both bias and variance of the proposed estimator are bounded above by the bias and variance of the following  estimator:
+
+\begin{equation}\label{unr_est}
+\widehat{\|u^Y\|_2^2} -\widehat{\|\varepsilon^Y\|_2^2}
+\end{equation}
+We start with a bias; recall that $m(x)$ is a conditional expectation function of $Y$, while $\sigma^2(x)$ is a conditional variance.  Our result is summarized in the following theorem:
+
+\begin{theorem}
+ Assume that $|m(x)-m(y)|\le Kd_A(x,y)$, assume that $\sigma^2(x)$ is a bounded function of $x$. Then the conditional bias of estimator (\ref{unr_est}) is of order $O\left(n^{\frac{-2}{d_1}}\right)$.
+ \end{theorem}
+
+\begin{proof}
+
+Let $h(X_i) = \sum_{j=1}^{\infty}\gamma_jg_j(X_i)$ and $h = (h(X_1),\dots, h(X_n))^T$, let $C = UDV^T$ be a singular-value decomposition of $C$, let $M= \mathcal{I}_n-C(C^TC)^{-1}C = \mathcal{I}_n -UU^T$. Let $r[k](X_i) = m(X_i)-m(X_i[k])$, $r[k] = (r[k](X_1),\dots, r[k](X_n))^T$ and let $\varepsilon[k] = (\varepsilon_1[k],\dots, \varepsilon_n[k])^T$
+
+By construction we have the following equality for the bias:
+\begin{multline}\label{fin_bias}
+b = Y^TMY -(Y-Y[1])^T(Y-Y[2]) -h^Th=\\
+(h+ \varepsilon^T)M(h+\varepsilon) - (r[1]+\varepsilon -\varepsilon[1])(r[2]+\varepsilon - \varepsilon[2])-h^Th =\\
+  \varepsilon^TUU^T\varepsilon+ 2\varepsilon^TUU^Th + h^TUU^Th -\\
+  r[1]^Tr[2]-r[1]^T(\varepsilon-\varepsilon[2]) -r[2]^T(\varepsilon-\varepsilon[1])+\varepsilon[1]^T\varepsilon+\varepsilon[2]^T\varepsilon-\varepsilon[1]^T\varepsilon[2]
+\end{multline}
+Let $D = \mathbb{E}[\varepsilon \varepsilon^T|X]= \text{diag}\{\sigma^2(X_1),\dots, \sigma^2(X_n)\}$; taking conditional expectation of $b$ in (\ref{fin_bias}) we come to the following equation for the conditional bias:
+\begin{equation}
+\text{bias}(X)=\frac{1}{n}\mathbb{E}[b|X] =\frac1n\left( h^TUU^Th +\text{trace}(DUU^T)-r[1]^Tr[2]\right)
+\end{equation}
+Applying Von Neumann's trace inequality to the second term we get the following:
+\begin{multline}
+|\text{bias}(X)|\le  \frac1n\left(h^TUU^Th +\text{trace}(DUU^T)+|r[1]^Tr[2]|\right)\le\\
+\frac1nh^TUU^Th+\frac mn\max_{i=1}^n\{\sigma^2(x_i)\} + \frac1n|r[1]^Tr[2]|
+\end{multline}
+Now, we use the Lipchitz continuity assumption: $|r[k](X_i)|\le K d_A(X_i,X_i[k])$:
+\begin{equation}
+|\text{bias}(X)|\le \frac1nh^TUU^Th+\frac mn\max_{i=1}^n\{\sigma^2(x_i)\} + \frac{K^2}{n}\sum_{i=1}^nd_A(X_i,X_i[2])^{2\gamma}
+\end{equation}
+Results of \parencite{liitiainen2008nonparametric} show that $\frac{K^2}{n}\sum_{i=1}^nd_A(X_i,X_i[2])^{2\gamma} \le M_1n^{-\frac{2}{d_1}}$ for some constant $M_1$ that doesn't depend on $d_1$. Compactness assumption guaranties that $ \frac1nh^TUU^Th\le \frac{m M_2}{n}$ for some constant $M_2$ as a result we have the following bound:
+\begin{equation}
+|\text{bias}(X)| \le M_2\frac{m}{n}+M_1n^{-\frac{2}{d_1}}
+\end{equation}
+
+Since we assumed that $d_1\ge 4$  we can imply that $|\text{bias}(X)|$ is or order $O\left(n^{\frac{-2}{d_1}}\right)$.
+\end{proof}
+
+We do not analyze variance, because it is well known that variance is going to be of order at most $O(n^{-1})$ and as a result it would be dominated by the bias term. As a result we can conclude that $\text{MSE} = \text{bias}^2 + \text{variance}$ is of order $O\left(n^{-\frac{4}{d_1}}\right)$.
+
+\subsection{Discussion} 
+
+In this section we presented a particular algorithm for estimation of our sensitivity measure. This algorithm is far from being perfect and of course it is not the only one that can be used to estimate the sensitivity. 
+
+One can proceed directly and try to estimate sensitivity directly as a length of projection. This is essentially equivalent to estimation of conditional mean and thus can be done by various non-parametric methods. We think that this approach is challenging because to implement it we need to work with a space $\mathcal{S}\setminus \mathcal {C}$ and this might be hard to do. At the same time we don't need the resulting estimator to be good in the typical sense (consistent, efficient, etc.) since we only use it to estimate the norm.
+
+Our study of statistical properties of our procedure is far from being complete. Most importantly we don't build confidence intervals for our measure. We explore this question in our future research. One particularly attractive way to build these intervals is to use modern concentration of measure techniques instead of traditional asymptotic analysis. Check \parencite{boucheron2013concentration} for introduction in this topic. 
+
+Another important limitation of our analysis is that we assume that all low-dimensional nuisance parameters ($\eta,\gamma$, etc) are known. Clearly, full analysis requires us treat them as random. 
+
+
+\section{Empirical example}
+
+In our empirical example we focus on a dataset of \parencite{lalonde1986evaluating}. In his influential paper Lalonde showed directly the problems that econometricians face when trying to replicate results of the experimental study using observational data. Our goal here is to test our sensitivity measure and see whether it will give reasonable answers in a situation which we understand quite clearly.
+
+\subsection{Description of data}
+
+Our dataset consists of three distinct groups: one treated group and two control groups. Treated and control group correspond to the experimental data from a job training program for men in in 1970s. In the experiment we have 185 treated individuals and 205 control individuals. Let $D$ denote the treatment status. For each individual we observe 8 attributes ($X$-s): age, education, hispanic, marriage, black, degree indicator and earnings in 1974 and 75. We also observe an outcome variable $Y$ -- earnings in 1978. 
+
+The second control group is just a group randomly drawn from Current Population Survey (CPS). There are $15,592$ units in the second control group. For each one we observe the same $8$ attributes and the outcome variable, as well as two additional covariates: unemployment indicators in 1974 and 75. 
+
+For a detailed description of the experiment and construction of the control group check \parencite{lalonde1986evaluating}. Original goal in the experiment was to asses the effect of the program on the outcome variable. As such this goal fits in our first example -- assessing treatment effect under unconfoundedness. 
+
+\subsection{ Analysis}
+
+Our goal here is to construct our sensitivity measure for two datasets: ``experimental" dataset, using only experimental data and ``observations" dataset, using experimental treatment group and general control group. First, we estimate treatment effect for both datasets, sing the following moment conditions:
+
+\begin{equation}
+\begin{cases}
+\mathbb{E}_{\mu}[(Y- \theta D-\sum_{i=1}^m\beta_iX_i)(D-\mathbb{E}[D])]=0\\
+\mathbb{E}_{\mu}\left[(Y- \alpha-\theta D-\sum_{i=1}^m\beta_iX_i)X_i\right]=0 \text{  for $i=1,\dots,m$}\\
+\mathbb{E}_{\mu}\left[(Y- \alpha-\theta D-\sum_{i=1}^m\beta_iX_i)\right] = 0
+\end{cases}
+\end{equation}
+
+For the experimental dataset we have $m=8$, while for the observational dataset we have $m=10$. Since we discussed this set of moment conditions in one of the examples we know that $\mathcal{C} = \text{span}\{X_1,\dots, X_m\}$. 
+
+To estimate sensitivity we proceed with the algorithm described in (\ref{estimation}). First we run a regression of $D$ on $(X_1,\dots, X_m)$ to get $\hat u^D$ and estimate $\|u^D\|^2_2$. Then we construct nearest neighbors $D[1]$ and $D[2]$. We standardize regressors (divide by the norm) which is equivalent to using diagonal weighting matrix $A$ in definition of $d_A$. Using $D[1]$ and $D[2]$ we estimate $\|\varepsilon^D \|^2_2$.
+
+In this setup function $f$ has a particular interpretation: it is a conditional  expectation of $Y(0)$ given $X_1,\dots, X_m$. We can view $\hat f = \hat \alpha + \sum_{i=1}^m\hat \beta_i X_i$ as its approximation and as a result use equality (\ref{distance}) to estimate not just sensitivity but also the distance $\|f-\hat f\|$. This distance has exactly same structure as sensitivity (although conceptually it is a very different object) and we can use straightforward adaptation of our algorithm to estimate it. 
+
+Namely, first we estimate $\hat f$ by OLS running regression of $Y(0)$ (in control groups) on $(X_1,\dots, X_m)$, construct $\hat u^Y$ and use it to estimate $\|u^Y\|_2^2$. Then we construct $Y[1]$ and $Y[2]$ and use them to estimate $\| \varepsilon^Y\|_2^2$.
+
+\subsection{Results}
+We summarize our results in the Table \ref{lalonde_table}. We see that sensitivity is equal to $5.57$ in the observational dataset and estimated at zero in the experimental one. Zero in the experimental dataset is the result of the small sample size -- non-parametric noise turned out to be larger than the parametric one. 
+
+In the table we also report estimated distance to the truth and we can see that it is quite significant in both cases: it is estimated at $723$ in the observational data and at $439$ in the experimental data.  This means that both in experimental and observational datasets simple linear model is far from the correct one. However, it has drastically different implications: this misspecification doesn't have any impact in the experimental framework, but in the observational framework. If we construct the worst case variation $(e\times \Delta)$ it will be equal to $0$ in the experimental dataset and to $4013$ in the observational one. 
+\begin{table}[h]
+\centering\caption{Sensitivity computation for Lalonde dataset}\label{lalonde_table}
+\begin{tabular}{l | c | c }
+& Non-experimental & Experimental \\
+\hline\hline
+$\widehat{\|u^Y\|}_2$ & 6978 & 5436 \\
+$\widehat{\|\varepsilon^Y\|}_2$ & 6940 & 5418 \\
+$\widehat{\|u^D\|}_2$ & 0.10 & 0.49\\
+$\widehat{\|\varepsilon^D\|}_2$ & 0.08 & 0.49 \\
+$\hat\Delta = \frac{\sqrt{\widehat{|u^D\|}_2^2-\widehat{\|\varepsilon^D\|}_2^2}}{\hat{\text{var}}(D)}$ & \textbf{5.57} & \textbf{0}\\
+$\hat e= \sqrt{\widehat{\|u^Y\|}_2^2- \widehat{\|\varepsilon^Y\|}^2_2}$ & 723  & 439\\
+$\hat e\times\hat\Delta$   & \textbf{4013} & \textbf{0} \\
+$\hat\tau$ & 1133 & 1784\\
+\end{tabular}
+\end{table}
+
+
+
+\section{Future research}
+
+The main goal of this paper is study of misspecification. Be believe that this study is far from being complete and discuss below several potential areas that we would like to explore in future research.
+
+In this paper we focused on a particular kind of probability models -- those defined by moment conditions. Specifically we were working in exactly identified framework. It is interesting to explore how important is misspecification in over-identified frameworks. In these models the method used to reduce over-identified system to just-identified clearly affects the definition of parameter of interest. One important question is to disentangle two effects that misspecification has in these frameworks: change of question and change of $f$. Potentially different methods (GEL, GMM) can be compared on these grounds.
+
+This paper is mostly focused on populational framework, abstracting away from many finite sample problems. It is important to provide further analysis of sample behavior of our measure, taking into account those uncertainties that we ignored in our analysis. We also need additional analysis in order to build confidence intervals for our measure.
+
+Very different area that we would like to explore is connection between our analysis and well-established analysis of semiparametric efficiency bounds \parencite[see][]{bickel1993efficient}. We believe that potential connection between our measure and these bounds is of theoretical interest.  
+
+On more abstract level we think that it is important to understand the role of misspecification in frameworks that don't fit into hours: namely those in which definition of parameter changes with different models. We think that understanding relationship between changes in models and changes in question is crucial for empirical work.
+
+
+\printbibliography
+\end{document}
+
+
+% Sensitivity can be bounded!
+
+There are two obstacles on the way to compute the worst case interval. The first one is conceptual: we don't know $\|f - \hat f\|$ and thus don't know how far we are from the truth. This is a conceptual obstacle, since sometimes it is not clear what ``truth" actually means. The second problem is
+
+ Assume that $f$ is a ``true" function and we use $\hat f$ instead. Also assume that $f \in \hat f + \mathcal{G}$. Let $\varepsilon = \|f-\hat f\|_2$, then $[\tau(\hat f, \mu) - \varepsilon \times \delta(\tau,\hat f, \mathcal{G},\varepsilon, \tau(\hat f, \mu) + \varepsilon \times \delta(\tau,\hat f, \mathcal{G},\varepsilon]$ gives us the worst-case interval for $\tau(f,\mu)$. Clearly, this interval can be too pessimistic and in fact $\tau(f, \mu)$ might be much closer to $\tau(\hat f, \mu)$ than $\varepsilon \times \delta$ suggests. 
+
+
+%% Part about linearization 
+
+
+In our definition of linearized sensitivity we substituted  potentially non-linear functional for its linear part. One alternative to that is to let $\varepsilon$ go to zero. This should have the same effect if or functional is sufficiently smooth. This result is summarized in the following theorem.
+
+\begin{theorem}
+Assume that $\tau$  is sufficiently smooth, then $\Delta(\tau,\hat f, \mathcal{G}) = \lim_{\varepsilon \rightarrow 0} \delta(\tau,\hat f, \mathcal{G}, \varepsilon)$. 
+\end{theorem}
+\begin{proof}
+TBA
+\end{proof}
+Linearized sensitivity is much more tractable then the original one, since supremum over functions in $\mathcal{G}$ can be easily computed. This is summarized by the following trivial lemma.
+
+
+%% Demand example
+
+
+
+\subsubsection{Demand estimation}
+We a consider binary choice setting. Let $H = (P,S,Z)$, where $P$ is the price of some good and $S$ is a share of consumers who purchase this good and $Z$ is an instrument for price (e.g., some cost side variable).
+
+Let $Y(\ln(p)) = \ln\left(\frac{S(\ln(p))}{1-S(\ln(p))}\right)$ be a demand function. Formally $Y(\cdot)$ is a collection of random variables. Let $y(\tau) = \frac{\partial Y(\ln(p))}{\partial \ln(p)}|_{\ln(p) = \tau}$, again, formally, $y(\cdot)$ is a collection of random variables. We assume the following homogeneity: $y(\tau)$ has a degenerate distribution for each $\tau$.\footnote{Without any conceptual changes we can assume that $y(\tau)$ is a random variable with distribution that doesn't depend on $X$.} This assumption corresponds to constant treatment effect assumption in the previous two examples. Further we assume that conditional distribution of $\ln(P)$ given $Z=0$ is degenerate. This is the same as one-sided compliance in the previous example.
+
+Given this we can write down the following model:  
+\begin{multline}
+Y(\ln(p))= Y(0) + \int_{0}^{\ln(p)} y(\tau)\, d\tau =  \alpha + f(X) +\int_{0}^{\ln(p)} y(\tau)\, d\tau +\varepsilon = \\
+\alpha + f(X) + \beta+\theta \ln(p) + \varepsilon +\nu(p)
+\end{multline}
+where $\alpha = \mathbb{E}_{\mu}[Y(0)]$, $f(X) = \mathbb{E}_{\mu}[Y(0)-\mathbb{E}_{\mu}[Y(0)]|X]$, $\varepsilon = Y(0)-\mathbb{E}_{\mu}[Y(0)|X]$ and $\nu(p) = \int_{0}^{\ln(p)} y(\tau)\, d\tau -\beta- \theta\ln(p)$. Note that $\varepsilon$ and $\nu(p)$ are conceptually different errors - the first one is a pure random noise, while the second one is an approximation error. 
+Substituting fixed number $p$ r a random variable $P$ we have the following:
+\begin{equation}
+Y = \gamma + f(X) + \theta \ln(P) + \varepsilon +\nu(P)
+\end{equation}
+\begin{equation}
+\begin{cases}
+\mathbb{E}_{\mu}[\varepsilon | X,Z] = 0\\
+\mathbb{E}_{\mu}[v(P)] = 0\\
+\mathbb{E}_{\mu}[v(P)(Z-\mathbb{E}_{\mu}[Z])]=0
+\end{cases}
+\end{equation}
+the first moment condition is the usual one, while the second two conditions essentially \textbf{define} parameters $\beta$ and $\theta$.
+\begin{equation}
+\begin{cases}
+f(X) = \mathbb{E}_{\mu}[Y-\mathbb{E}_{\mu}[Y|Z=0]|X,Z=0]\\
+\theta = \frac{\mathbb{E}_{\mu}[(Y-f(X))(Z-\mathbb{E}_{\mu}[Z])]}{\mathbb{E}_{\mu}[\ln(P)(Z-\mathbb{E}_{\mu}[Z])]}
+\end{cases}
+\end{equation}
+
+In this setup our functional is given by the following expression:
+\begin{equation}\label{demand}
+\tau(f,\mu) = \frac{\mathbb{E}_{\mu}[(Y-f(X))(Z-\mathbb{E}_{\mu}[Z])]}{\mathbb{E}_{\mu}[\ln(P)(Z-\mathbb{E}_{\mu}[Z])]}
+\end{equation}
+In this setup (\ref{demand}) should be viewed only as definition. We don't have a conditional moment restriction that defines parameter of interest and different moment conditions give rise to different answers. As before functional is linear in $f(X)$.
+
+
+
+We are interested in a functional $\tau:\mathcal{S}\times \mathcal{M} \rightarrow \mathbb{R}$. We are making the following assumption on $\tau$
+
