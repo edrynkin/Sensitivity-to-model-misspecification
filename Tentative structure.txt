@@ -1,0 +1,15 @@
+1. Intro
+2. Simple results
+	2.1. Main example: treatment effects
+	2.2. Data illustration: LaLonde dataset analysis (keep subsections as they currently are)
+	2.3. Other important settings
+3. General model
+	3.1. Notation (merge with "Technical definitions")
+	3.2. Setup (maybe should keep name "GMM framework")
+	3.3. Definition of sensitivity (merge with "Motivation" of sensitivity)
+		3.3.1. Constrained sensitivity
+	3.4. Examples
+4. Estimation (keep subsections as they currently are)
+5. Concluding remarks
+
+Add "Discussion" whenever necessary.
